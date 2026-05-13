@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Students — Admin</title><link rel="stylesheet" href="../css/style.css"></head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h2>🎓 UniERP</h2><span>Admin Portal</span></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+      <a class="nav-item active" href="students.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>Students</span></a>
+      <a class="nav-item" href="courses.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span>Courses</span></a>
+      <a class="nav-item" href="offerings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Offerings</span></a>
+      <a class="nav-item" href="instructors.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Instructors</span></a>
+      <a class="nav-item" href="announcements.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span>Announcements</span></a>
+    </nav>
+    <div class="sidebar-footer"><a class="nav-item" href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Logout</span></a></div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <span class="topbar-title">Student Management</span>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="showModal('add-modal')">+ Add Student</button>
+        <div class="avatar">A</div>
+      </div>
+    </header>
+    <div class="content">
+      <input class="search-bar" id="search" placeholder="Search by name, email, enrollment no..." oninput="filter(this.value)">
+      <div class="card">
+        <div class="card-header"><span class="card-title">All Students (<span id="count">0</span>)</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Enroll No</th><th>Name</th><th>Email</th><th>Program</th><th>Year</th><th>Actions</th></tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="add-modal" style="display:none" onclick="if(event.target===this)closeModal('add-modal')">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add New Student</span><button class="modal-close" onclick="closeModal('add-modal')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>First Name *</label><input id="a-fname" placeholder="First name"></div>
+      <div class="form-group"><label>Middle Name</label><input id="a-mname" placeholder="Middle name"></div>
+      <div class="form-group"><label>Last Name *</label><input id="a-lname" placeholder="Last name"></div>
+      <div class="form-group"><label>Email *</label><input type="email" id="a-email" placeholder="student@university.edu"></div>
+      <div class="form-group"><label>Phone</label><input id="a-phone" placeholder="Phone number"></div>
+      <div class="form-group"><label>Gender</label><select id="a-gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+      <div class="form-group"><label>Enrollment No *</label><input id="a-enroll" placeholder="e.g. 202401040099"></div>
+      <div class="form-group"><label>Current Year</label><select id="a-year"><option value="1">Year 1</option><option value="2">Year 2</option><option value="3">Year 3</option><option value="4">Year 4</option></select></div>
+      <div class="form-group form-full"><label>Program *</label><input id="a-program" placeholder="e.g. B.Tech Computer Science"></div>
+      <div class="form-group form-full"><label>Initial Password *</label><input type="password" id="a-password" placeholder="Login password"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('add-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addStudent()">Add Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="edit-modal" style="display:none" onclick="if(event.target===this)closeModal('edit-modal')">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Edit Student</span><button class="modal-close" onclick="closeModal('edit-modal')">×</button></div>
+    <input type="hidden" id="e-id">
+    <div class="form-grid">
+      <div class="form-group"><label>First Name *</label><input id="e-fname"></div>
+      <div class="form-group"><label>Middle Name</label><input id="e-mname"></div>
+      <div class="form-group"><label>Last Name *</label><input id="e-lname"></div>
+      <div class="form-group"><label>Phone</label><input id="e-phone"></div>
+      <div class="form-group"><label>Gender</label><select id="e-gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+      <div class="form-group"><label>Current Year</label><select id="e-year"><option value="1">Year 1</option><option value="2">Year 2</option><option value="3">Year 3</option><option value="4">Year 4</option></select></div>
+      <div class="form-group form-full"><label>Program *</label><input id="e-program"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('edit-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="updateStudent()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+let all = [];
+
+async function load() {
+  all = await API.get('../api/students');
+  render(all);
+}
+
+function render(data) {
+  document.getElementById('count').textContent = data.length;
+  document.getElementById('tbody').innerHTML = data.length === 0 ? tableEmpty(6) :
+    data.map(s => `<tr>
+      <td><span class="badge bg-blue">${s.enrollmentNo}</span></td>
+      <td><strong>${s.fname} ${s.mname ? s.mname + ' ' : ''}${s.lname}</strong></td>
+      <td style="color:#718096;font-size:12px">${s.email}</td>
+      <td>${s.program}</td>
+      <td>Year ${s.currentYear}</td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" onclick='openEdit(${JSON.stringify(s)})'>Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="del(${s.studentId},'${(s.fname+' '+s.lname).replace(/'/g,"\\'")}')">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+function filter(q) {
+  q = q.toLowerCase();
+  render(all.filter(s =>
+    (s.fname+' '+s.lname).toLowerCase().includes(q) ||
+    s.email.toLowerCase().includes(q) ||
+    (s.enrollmentNo||'').toLowerCase().includes(q)
+  ));
+}
+
+function openEdit(s) {
+  document.getElementById('e-id').value = s.studentId;
+  document.getElementById('e-fname').value = s.fname;
+  document.getElementById('e-mname').value = s.mname || '';
+  document.getElementById('e-lname').value = s.lname;
+  document.getElementById('e-phone').value = s.phone || '';
+  document.getElementById('e-gender').value = s.gender || '';
+  document.getElementById('e-program').value = s.program;
+  document.getElementById('e-year').value = s.currentYear;
+  showModal('edit-modal');
+}
+
+async function updateStudent() {
+  const id = parseInt(document.getElementById('e-id').value);
+  const fname = document.getElementById('e-fname').value.trim();
+  const lname = document.getElementById('e-lname').value.trim();
+  const program = document.getElementById('e-program').value.trim();
+  if (!fname || !lname || !program) { toast('Fill required fields', 'error'); return; }
+  const res = await API.put('../api/students', {
+    studentId: id,
+    fname, mname: document.getElementById('e-mname').value,
+    lname, phone: document.getElementById('e-phone').value,
+    gender: document.getElementById('e-gender').value,
+    program, currentYear: document.getElementById('e-year').value
+  });
+  if (res.success) { toast('Student updated!'); closeModal('edit-modal'); load(); }
+  else toast(res.error || 'Update failed', 'error');
+}
+
+async function addStudent() {
+  const fname=document.getElementById('a-fname').value.trim();
+  const lname=document.getElementById('a-lname').value.trim();
+  const email=document.getElementById('a-email').value.trim();
+  const enroll=document.getElementById('a-enroll').value.trim();
+  const program=document.getElementById('a-program').value.trim();
+  const password=document.getElementById('a-password').value;
+  if (!fname||!lname||!email||!enroll||!program||!password) { toast('Fill all required fields','error'); return; }
+  const res = await API.post('../api/students', {
+    fname, mname:document.getElementById('a-mname').value,
+    lname, email, phone:document.getElementById('a-phone').value,
+    gender:document.getElementById('a-gender').value,
+    enrollmentNo:enroll, program, password,
+    currentYear:document.getElementById('a-year').value
+  });
+  if (res.success) { toast('Student added!'); closeModal('add-modal'); load(); }
+  else toast(res.error||'Failed','error');
+}
+
+async function del(id, name) {
+  if (!confirm('Delete "'+name+'"? Cannot be undone.')) return;
+  const res = await API.delete('../api/students/'+id);
+  if (res.success) { toast('Deleted'); load(); }
+  else toast(res.error,'error');
+}
+
+load(); initSidebar();
+</script>
+</body>
+</html>
