@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Faculty Dashboard</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h2>🎓 UniERP</h2><span>Faculty Portal</span></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>My Classes</span></a>
+      <a class="nav-item" href="assignments.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Assignments</span></a>
+      <a class="nav-item" href="attendance.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span>Attendance</span></a>
+      <a class="nav-item" href="materials.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span>Materials</span></a>
+      <a class="nav-item" href="announcements.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span>Announcements</span></a>
+      <a class="nav-item" href="grades.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Grades</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="nav-item" href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Logout</span></a>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <span class="topbar-title">Faculty Dashboard</span>
+      <div class="topbar-right">
+        <div class="user-info">
+          <div class="name" id="user-name">Loading...</div>
+          <div class="role" id="user-title">Instructor</div>
+        </div>
+        <div class="avatar" id="user-avatar">F</div>
+      </div>
+    </header>
+    <div class="content">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-icon si-blue">📚</div><div><div class="stat-val" id="s-courses">—</div><div class="stat-lbl">My Courses</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-green">👨‍🎓</div><div><div class="stat-val" id="s-students">—</div><div class="stat-lbl">Enrolled Students</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-purple">📋</div><div><div class="stat-val" id="s-assignments">—</div><div class="stat-lbl">Total Assignments</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-orange">📢</div><div><div class="stat-val" id="s-announcements">—</div><div class="stat-lbl">Announcements</div></div></div>
+      </div>
+
+      <!-- Course Offerings -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><span class="card-title">My Course Offerings</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Course</th><th>Credits</th><th>Section</th><th>Semester</th><th>Classroom</th><th>Timings</th><th>Students</th><th>Action</th></tr></thead>
+            <tbody id="offerings-tbody"><tr><td colspan="8" style="text-align:center;padding:24px">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- My Students -->
+      <div class="card" id="students-card" style="display:none">
+        <div class="card-header">
+          <span class="card-title" id="students-title">Students</span>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('students-card').style.display='none'">Close</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Enrollment No</th><th>Name</th><th>Course</th><th>Grade</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="students-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Grade Modal -->
+<div class="modal-overlay" id="grade-modal" style="display:none" onclick="if(event.target===this)closeModal('grade-modal')">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header"><span class="modal-title">Enter Grade</span><button class="modal-close" onclick="closeModal('grade-modal')">×</button></div>
+    <p id="grade-for" style="color:#718096;margin-bottom:16px;font-size:13px"></p>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Grade</label>
+      <select id="g-grade" onchange="document.getElementById('g-pts').value=gradeToPoints(this.value)">
+        <option value="">— Select —</option>
+        <option value="O">O — Outstanding (10)</option>
+        <option value="A+">A+ — Excellent (9)</option>
+        <option value="A">A — Very Good (8)</option>
+        <option value="B+">B+ — Good (7)</option>
+        <option value="B">B — Above Average (6)</option>
+        <option value="C">C — Average (5)</option>
+        <option value="F">F — Fail (0)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Grade Points</label>
+      <input type="number" id="g-pts" step="0.1" min="0" max="10" readonly style="background:#f7fafc">
+    </div>
+    <input type="hidden" id="g-eid">
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('grade-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="saveGrade()">Save Grade</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+let instructorId = 0;
+
+async function init() {
+  initSidebar();
+  const inst = await API.get('../api/instructor/me');
+  if (inst.error) { window.location.href = '../index.html'; return; }
+  instructorId = inst.instructorId;
+
+  document.getElementById('user-name').textContent = inst.fname + ' ' + inst.lname;
+  document.getElementById('user-title').textContent = inst.title || 'Instructor';
+  document.getElementById('user-avatar').textContent = inst.fname[0];
+
+  const [offerings, announcements] = await Promise.all([
+    API.get('../api/courses/offerings/instructor/0'),
+    API.get('../api/announcements')
+  ]);
+
+  document.getElementById('s-courses').textContent = offerings.length;
+  let totalStudents = offerings.reduce((a, o) => a + (o.enrolledCount || 0), 0);
+  document.getElementById('s-students').textContent = totalStudents;
+  document.getElementById('s-announcements').textContent = announcements.length;
+
+  // Count assignments across all offerings
+  let totalAssignments = 0;
+  for (const o of offerings) {
+    const asn = await API.get('../api/assignments/offering/' + o.offeringId);
+    totalAssignments += asn.length;
+  }
+  document.getElementById('s-assignments').textContent = totalAssignments;
+
+  const tbody = document.getElementById('offerings-tbody');
+  tbody.innerHTML = offerings.length === 0
+    ? tableEmpty(8, 'No course offerings assigned to you. Contact admin.')
+    : offerings.map(o => `<tr>
+        <td><strong>${o.courseNo}</strong><br><span style="color:#718096;font-size:12px">${o.courseTitle}</span></td>
+        <td>${o.credits}</td>
+        <td>Section ${o.sectionNo}</td>
+        <td>Sem ${o.semester} ${o.year}</td>
+        <td>${o.classroom || '—'}</td>
+        <td style="font-size:12px">${o.timings || '—'}</td>
+        <td><span class="badge bg-blue">${o.enrolledCount} students</span></td>
+        <td><button class="btn btn-primary btn-sm" onclick="viewStudents(${o.offeringId},'${o.courseTitle.replace(/'/g,"\\'")}')">Students</button></td>
+      </tr>`).join('');
+}
+
+async function viewStudents(offeringId, title) {
+  document.getElementById('students-card').style.display = 'block';
+  document.getElementById('students-title').textContent = 'Students in: ' + title;
+  const data = await API.get('../api/enrollments/offering/' + offeringId);
+  document.getElementById('students-tbody').innerHTML = data.length === 0
+    ? tableEmpty(6, 'No students enrolled')
+    : data.map(s => `<tr>
+        <td>${s.enrollmentNo}</td>
+        <td><strong>${s.studentName}</strong></td>
+        <td style="font-size:12px">${s.courseNo || ''}</td>
+        <td><span class="grade-big ${gradeClass(s.grade)}">${s.grade || '—'}</span></td>
+        <td>${statusBadge(s.status)}</td>
+        <td>${s.status !== 'dropped'
+          ? `<button class="btn btn-outline btn-sm" onclick="openGrade(${s.enrollmentId},'${s.studentName.replace(/'/g,"\\'")}')">Grade</button>`
+          : '—'}</td>
+      </tr>`).join('');
+  document.getElementById('students-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+function openGrade(eid, name) {
+  document.getElementById('g-eid').value = eid;
+  document.getElementById('grade-for').textContent = 'Student: ' + name;
+  document.getElementById('g-grade').value = '';
+  document.getElementById('g-pts').value = '';
+  showModal('grade-modal');
+}
+
+async function saveGrade() {
+  const grade = document.getElementById('g-grade').value;
+  if (!grade) { toast('Select a grade', 'error'); return; }
+  const eid = parseInt(document.getElementById('g-eid').value);
+  const res = await API.put('../api/enrollments/grade/' + eid, { grade, gradePoints: gradeToPoints(grade) });
+  if (res.success) { toast('Grade saved!'); closeModal('grade-modal'); }
+  else toast(res.error, 'error');
+}
+
+init();
+</script>
+</body>
+</html>
