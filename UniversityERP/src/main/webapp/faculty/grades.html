@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Grades — Faculty</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h2>🎓 UniERP</h2><span>Faculty Portal</span></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="dashboard.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span>My Classes</span>
+      </a>
+      <a class="nav-item" href="assignments.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span>Assignments</span>
+      </a>
+      <a class="nav-item" href="attendance.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        <span>Attendance</span>
+      </a>
+      <a class="nav-item" href="materials.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        <span>Materials</span>
+      </a>
+      <a class="nav-item" href="announcements.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span>Announcements</span>
+      </a>
+      <a class="nav-item active" href="grades.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Grades</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="nav-item" href="#" onclick="logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Logout</span>
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <span class="topbar-title">Manage Grades</span>
+      <div class="topbar-right"><div class="avatar">F</div></div>
+    </header>
+    <div class="content">
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <label style="font-weight:500;font-size:14px">Select Course:</label>
+          <select id="offering-select" onchange="loadStudents()" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;outline:none;min-width:300px">
+            <option value="">— Select a course —</option>
+          </select>
+        </div>
+      </div>
+      <div class="card" id="grades-card" style="display:none">
+        <div class="card-header"><span class="card-title" id="grades-title">Students</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Enrollment No</th><th>Name</th><th>Current Grade</th><th>Points</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="students-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="grade-modal" style="display:none" onclick="if(event.target===this)closeModal('grade-modal')">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header"><span class="modal-title">Enter Grade</span><button class="modal-close" onclick="closeModal('grade-modal')">×</button></div>
+    <p id="grade-for" style="color:#718096;margin-bottom:16px;font-size:13px"></p>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Grade</label>
+      <select id="g-grade" onchange="document.getElementById('g-pts').value=gradeToPoints(this.value)">
+        <option value="">— Select —</option>
+        <option value="O">O — Outstanding (10)</option>
+        <option value="A+">A+ — Excellent (9)</option>
+        <option value="A">A — Very Good (8)</option>
+        <option value="B+">B+ — Good (7)</option>
+        <option value="B">B — Above Average (6)</option>
+        <option value="C">C — Average (5)</option>
+        <option value="F">F — Fail (0)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Grade Points</label>
+      <input type="number" id="g-pts" step="0.1" min="0" max="10" readonly style="background:#f7fafc">
+    </div>
+    <input type="hidden" id="g-eid">
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('grade-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="saveGrade()">Save Grade</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+async function init() {
+  initSidebar();
+  const offerings = await API.get('../api/courses/offerings/instructor/0');
+  const sel = document.getElementById('offering-select');
+  offerings.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.offeringId;
+    opt.textContent = `${o.courseNo} — ${o.courseTitle} (Sem ${o.semester} ${o.year})`;
+    sel.appendChild(opt);
+  });
+}
+
+async function loadStudents() {
+  const offeringId = document.getElementById('offering-select').value;
+  if (!offeringId) return;
+  const data = await API.get('../api/enrollments/offering/' + offeringId);
+  document.getElementById('grades-card').style.display = 'block';
+  document.getElementById('grades-title').textContent = `Students (${data.length})`;
+  document.getElementById('students-tbody').innerHTML = data.length === 0
+    ? tableEmpty(6, 'No students enrolled')
+    : data.map(s => `<tr>
+        <td>${s.enrollmentNo}</td>
+        <td>${s.studentName}</td>
+        <td><span class="grade-big ${gradeClass(s.grade)}">${s.grade || '—'}</span></td>
+        <td>${s.gradePoints >= 0 ? s.gradePoints : '—'}</td>
+        <td>${statusBadge(s.status)}</td>
+        <td>${s.status !== 'dropped'
+          ? `<button class="btn btn-outline btn-sm" onclick="openGrade(${s.enrollmentId},'${s.studentName.replace(/'/g,"\\'")}')">Grade</button>`
+          : '—'}</td>
+      </tr>`).join('');
+}
+
+function openGrade(eid, name) {
+  document.getElementById('g-eid').value = eid;
+  document.getElementById('grade-for').textContent = 'Student: ' + name;
+  document.getElementById('g-grade').value = '';
+  document.getElementById('g-pts').value = '';
+  showModal('grade-modal');
+}
+
+async function saveGrade() {
+  const grade = document.getElementById('g-grade').value;
+  if (!grade) { toast('Select a grade', 'error'); return; }
+  const eid = parseInt(document.getElementById('g-eid').value);
+  const res = await API.put('../api/enrollments/grade/' + eid, { grade, gradePoints: gradeToPoints(grade) });
+  if (res.success) { toast('Grade saved!'); closeModal('grade-modal'); loadStudents(); }
+  else toast(res.error, 'error');
+}
+
+init();
+</script>
+</body>
+</html>
