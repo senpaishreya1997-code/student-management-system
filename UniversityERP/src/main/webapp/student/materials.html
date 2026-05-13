@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Study Materials — Student</title><link rel="stylesheet" href="../css/style.css"></head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h2>🎓 UniERP</h2><span>Student Portal</span></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+      <a class="nav-item" href="assignments.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg><span>Assignments</span></a>
+      <a class="nav-item active" href="materials.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span>Materials</span></a>
+      <a class="nav-item" href="announcements.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg><span>Announcements</span></a>
+      <a class="nav-item" href="attendance.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg><span>Attendance</span></a>
+      <a class="nav-item" href="grades.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Grades</span></a>
+    </nav>
+    <div class="sidebar-footer"><a class="nav-item" href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Logout</span></a></div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <span class="topbar-title">Study Materials</span>
+      <div class="topbar-right"><div class="avatar" id="user-avatar">S</div></div>
+    </header>
+    <div class="content">
+      <input class="search-bar" id="search" placeholder="Search materials..." oninput="filter(this.value)">
+      <div class="card">
+        <div class="card-header"><span class="card-title">All Materials from My Courses</span></div>
+        <div id="materials-container"></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="../js/app.js"></script>
+<script>
+const typeIcons = { notes:'📝', slides:'📊', video:'🎥', link:'🔗', other:'📁' };
+let all = [];
+(async () => {
+  initSidebar();
+  const student = await API.get('../api/students/me');
+  document.getElementById('user-avatar').textContent = student.fname[0];
+  all = await API.get('../api/materials/student');
+  render(all);
+})();
+
+function render(data) {
+  const container = document.getElementById('materials-container');
+  container.innerHTML = data.length === 0
+    ? '<div style="text-align:center;padding:40px;color:#718096">No materials available yet</div>'
+    : data.map(m => `
+      <div style="border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px">
+        <div style="font-size:28px">${typeIcons[m.type]||'📁'}</div>
+        <div style="flex:1">
+          <strong style="font-size:14px">${m.title}</strong>
+          <span class="badge bg-gray" style="margin-left:8px">${m.courseNo}</span>
+          <div style="font-size:12px;color:#718096;margin-top:3px">${m.courseTitle} · ${m.uploadedAt ? m.uploadedAt.substring(0,10) : ''}</div>
+          ${m.description ? `<div style="font-size:13px;color:#4a5568;margin-top:4px">${m.description}</div>` : ''}
+        </div>
+        <div>
+          ${m.url ? `<a href="${m.url}" target="_blank" class="btn btn-primary btn-sm">Open</a>` : '<span class="badge bg-gray">No link</span>'}
+        </div>
+      </div>`).join('');
+}
+
+function filter(q) {
+  q = q.toLowerCase();
+  render(all.filter(m => m.title.toLowerCase().includes(q) || m.courseTitle.toLowerCase().includes(q)));
+}
+</script>
+</body>
+</html>
