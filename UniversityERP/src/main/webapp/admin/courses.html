@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Courses — Admin</title><link rel="stylesheet" href="../css/style.css"></head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h2>🎓 UniERP</h2><span>Admin Portal</span></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+      <a class="nav-item" href="students.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>Students</span></a>
+      <a class="nav-item active" href="courses.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span>Courses</span></a>
+      <a class="nav-item" href="offerings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Offerings</span></a>
+      <a class="nav-item" href="instructors.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Instructors</span></a>
+      <a class="nav-item" href="announcements.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span>Announcements</span></a>
+    </nav>
+    <div class="sidebar-footer"><a class="nav-item" href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Logout</span></a></div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <span class="topbar-title">Course Management</span>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="showModal('add-modal')">+ Add Course</button>
+        <div class="avatar">A</div>
+      </div>
+    </header>
+    <div class="content">
+      <div class="card">
+        <div class="card-header"><span class="card-title">All Courses (<span id="count">0</span>)</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Course No</th><th>Title</th><th>Credits</th><th>Department</th><th>Syllabus</th><th>Actions</th></tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="add-modal" style="display:none" onclick="if(event.target===this)closeModal('add-modal')">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add New Course</span><button class="modal-close" onclick="closeModal('add-modal')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Course Number *</label><input id="a-no" placeholder="e.g. CS401"></div>
+      <div class="form-group"><label>Credits *</label><input type="number" id="a-credits" min="1" max="6" placeholder="3"></div>
+      <div class="form-group form-full"><label>Course Title *</label><input id="a-title" placeholder="e.g. Operating Systems"></div>
+      <div class="form-group"><label>Department</label><select id="a-dept"></select></div>
+      <div class="form-group form-full"><label>Syllabus</label><textarea id="a-syllabus" rows="3" placeholder="Brief syllabus..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('add-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="add()">Add Course</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="edit-modal" style="display:none" onclick="if(event.target===this)closeModal('edit-modal')">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Edit Course</span><button class="modal-close" onclick="closeModal('edit-modal')">×</button></div>
+    <input type="hidden" id="e-id">
+    <div class="form-grid">
+      <div class="form-group"><label>Course Number *</label><input id="e-no"></div>
+      <div class="form-group"><label>Credits *</label><input type="number" id="e-credits" min="1" max="6"></div>
+      <div class="form-group form-full"><label>Course Title *</label><input id="e-title"></div>
+      <div class="form-group"><label>Department</label><select id="e-dept"></select></div>
+      <div class="form-group form-full"><label>Syllabus</label><textarea id="e-syllabus" rows="3"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('edit-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="update()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+async function load() {
+  const [courses, depts] = await Promise.all([API.get('../api/courses'), API.get('../api/courses/departments')]);
+  ['a-dept','e-dept'].forEach(id => {
+    document.getElementById(id).innerHTML = depts.map(d => `<option value="${d.deptId}">${d.deptName}</option>`).join('');
+  });
+  document.getElementById('count').textContent = courses.length;
+  document.getElementById('tbody').innerHTML = courses.length === 0 ? tableEmpty(6) :
+    courses.map(c => `<tr>
+      <td><span class="badge bg-purple">${c.courseNo}</span></td>
+      <td><strong>${c.title}</strong></td>
+      <td>${c.credits}</td>
+      <td>${c.deptName||'—'}</td>
+      <td style="font-size:12px;color:#718096;max-width:180px">${c.syllabus ? c.syllabus.substring(0,60)+'...' : '—'}</td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" onclick='openEdit(${JSON.stringify(c)})'>Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="del(${c.courseId},'${c.title.replace(/'/g,"\\'")}')">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openEdit(c) {
+  document.getElementById('e-id').value = c.courseId;
+  document.getElementById('e-no').value = c.courseNo;
+  document.getElementById('e-title').value = c.title;
+  document.getElementById('e-credits').value = c.credits;
+  document.getElementById('e-dept').value = c.deptId;
+  document.getElementById('e-syllabus').value = c.syllabus || '';
+  showModal('edit-modal');
+}
+
+async function update() {
+  const id = parseInt(document.getElementById('e-id').value);
+  const courseNo = document.getElementById('e-no').value.trim();
+  const title = document.getElementById('e-title').value.trim();
+  const credits = document.getElementById('e-credits').value;
+  if (!courseNo || !title || !credits) { toast('Fill required fields', 'error'); return; }
+  const res = await API.put('../api/courses/' + id, {
+    courseNo, title, credits: parseInt(credits),
+    syllabus: document.getElementById('e-syllabus').value,
+    deptId: document.getElementById('e-dept').value
+  });
+  if (res.success) { toast('Course updated!'); closeModal('edit-modal'); load(); }
+  else toast(res.error || 'Update failed', 'error');
+}
+
+async function add() {
+  const no=document.getElementById('a-no').value.trim();
+  const title=document.getElementById('a-title').value.trim();
+  const credits=document.getElementById('a-credits').value;
+  if (!no||!title||!credits) { toast('Fill required fields','error'); return; }
+  const res = await API.post('../api/courses', {
+    courseNo:no, title, credits:parseInt(credits),
+    syllabus:document.getElementById('a-syllabus').value,
+    deptId:document.getElementById('a-dept').value
+  });
+  if (res.success) { toast('Course added!'); closeModal('add-modal'); load(); }
+  else toast(res.error,'error');
+}
+
+async function del(id, name) {
+  if (!confirm('Delete "'+name+'"?')) return;
+  const res = await API.delete('../api/courses/'+id);
+  if (res.success) { toast('Deleted'); load(); }
+  else toast(res.error||'Cannot delete — may have active offerings','error');
+}
+
+load(); initSidebar();
+</script>
+</body>
+</html>
