@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Announcements — Faculty</title><link rel="stylesheet" href="../css/style.css"></head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h2>🎓 UniERP</h2><span>Faculty Portal</span></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>My Classes</span></a>
+      <a class="nav-item" href="assignments.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Assignments</span></a>
+      <a class="nav-item" href="attendance.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span>Attendance</span></a>
+      <a class="nav-item" href="materials.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span>Materials</span></a>
+      <a class="nav-item active" href="announcements.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span>Announcements</span></a>
+    </nav>
+    <div class="sidebar-footer"><a class="nav-item" href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Logout</span></a></div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <span class="topbar-title">Announcements</span>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm" onclick="showModal('add-modal')">+ New Announcement</button>
+        <div class="avatar">F</div>
+      </div>
+    </header>
+    <div class="content">
+      <div id="announcements-list"></div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="add-modal" style="display:none" onclick="if(event.target===this)closeModal('add-modal')">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Post Announcement</span><button class="modal-close" onclick="closeModal('add-modal')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group form-full"><label>Title *</label><input id="a-title" placeholder="Announcement title"></div>
+      <div class="form-group"><label>Audience</label>
+        <select id="a-target">
+          <option value="all">Everyone</option>
+          <option value="student">Students only</option>
+          <option value="instructor">Faculty only</option>
+        </select>
+      </div>
+      <div class="form-group"><label>For Course (optional)</label><select id="a-offering"><option value="-1">— All courses —</option></select></div>
+      <div class="form-group form-full"><label>Message *</label><textarea id="a-content" rows="4" placeholder="Write your announcement..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('add-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="post()">Post</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+async function init() {
+  initSidebar();
+  const offerings = await API.get('../api/courses/offerings/instructor/0');
+  const sel = document.getElementById('a-offering');
+  offerings.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.offeringId;
+    opt.textContent = `${o.courseNo} — ${o.courseTitle}`;
+    sel.appendChild(opt);
+  });
+  load();
+}
+
+async function load() {
+  const data = await API.get('../api/announcements');
+  const container = document.getElementById('announcements-list');
+  container.innerHTML = data.length === 0
+    ? '<div class="card" style="text-align:center;padding:40px;color:#718096">No announcements yet</div>'
+    : data.map(a => `
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div>
+            <h3 style="font-size:16px;font-weight:600;margin-bottom:4px">${a.title}</h3>
+            <span class="badge ${a.targetRole==='all'?'bg-blue':a.targetRole==='student'?'bg-green':'bg-purple'}">${a.targetRole}</span>
+            ${a.courseNo ? `<span class="badge bg-gray" style="margin-left:6px">${a.courseNo}</span>` : ''}
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;color:#718096">${a.createdAt ? a.createdAt.substring(0,16) : ''}</div>
+            <div style="font-size:12px;color:#718096">By: ${a.creatorName}</div>
+            <button class="btn btn-danger btn-sm" style="margin-top:6px" onclick="del(${a.announcementId})">Delete</button>
+          </div>
+        </div>
+        <p style="font-size:14px;color:#4a5568;line-height:1.6">${a.content}</p>
+      </div>`).join('');
+}
+
+async function post() {
+  const title = document.getElementById('a-title').value.trim();
+  const content = document.getElementById('a-content').value.trim();
+  if (!title || !content) { toast('Title and message required','error'); return; }
+  const res = await API.post('../api/announcements', {
+    title, content,
+    targetRole: document.getElementById('a-target').value,
+    offeringId: document.getElementById('a-offering').value
+  });
+  if (res.success) { toast('Posted!'); closeModal('add-modal'); load(); }
+  else toast(res.error,'error');
+}
+
+async function del(id) {
+  if (!confirm('Delete this announcement?')) return;
+  const res = await API.delete('../api/announcements/' + id);
+  if (res.success) { toast('Deleted'); load(); }
+  else toast(res.error,'error');
+}
+init();
+</script>
+</body>
+</html>
