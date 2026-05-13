@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Browse Courses</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h2>🎓 UniERP</h2><span>Student Portal</span></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+      <a class="nav-item active" href="courses.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span>Browse &amp; Enroll</span></a>
+      <a class="nav-item" href="my-courses.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span>My Enrollments</span></a>
+      <a class="nav-item" href="assignments.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Assignments</span></a>
+      <a class="nav-item" href="materials.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span>Materials</span></a>
+      <a class="nav-item" href="announcements.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span>Announcements</span></a>
+      <a class="nav-item" href="attendance.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span>Attendance</span></a>
+      <a class="nav-item" href="grades.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Grades &amp; CGPA</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="nav-item" href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Logout</span></a>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <span class="topbar-title">Browse &amp; Enroll in Courses</span>
+      <div class="topbar-right"><div class="avatar" id="user-avatar">S</div></div>
+    </header>
+    <div class="content">
+      <input class="search-bar" id="search" placeholder="Search by course name, code or instructor..." oninput="filter(this.value)">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Available Course Offerings</span>
+          <span id="count" style="font-size:13px;color:#718096"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Course</th><th>Credits</th><th>Instructor</th><th>Semester</th><th>Classroom</th><th>Timings</th><th>Seats</th><th>Action</th></tr></thead>
+            <tbody id="offerings-tbody"><tr><td colspan="8" style="text-align:center;padding:24px">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="../js/app.js"></script>
+<script>
+let all = [], studentId = 0;
+(async () => {
+  initSidebar();
+  const student = await API.get('../api/students/me');
+  if (student.error) { window.location.href = '../index.html'; return; }
+  studentId = student.studentId;
+  document.getElementById('user-avatar').textContent = student.fname[0];
+  all = await API.get('../api/courses/available/' + studentId);
+  render(all);
+})();
+
+function render(data) {
+  document.getElementById('count').textContent = data.length + ' offering(s)';
+  document.getElementById('offerings-tbody').innerHTML = data.length === 0
+    ? tableEmpty(8, 'No available courses. You may already be enrolled in everything!')
+    : data.map(o => {
+        const seats = o.maxStudents - o.enrolledCount;
+        return `<tr>
+          <td><strong>${o.courseNo}</strong><br><span style="color:#718096;font-size:12px">${o.courseTitle}</span></td>
+          <td>${o.credits}</td>
+          <td>${o.instructorName}</td>
+          <td>Sem ${o.semester} ${o.year}</td>
+          <td>${o.classroom || '—'}</td>
+          <td style="font-size:12px">${o.timings || '—'}</td>
+          <td><span class="badge ${seats > 10 ? 'bg-green' : seats > 0 ? 'bg-orange' : 'bg-red'}">${seats > 0 ? seats + ' left' : 'Full'}</span></td>
+          <td>${seats > 0
+            ? `<button class="btn btn-primary btn-sm" onclick="enroll(${o.offeringId})">Enroll</button>`
+            : '<span class="badge bg-gray">Full</span>'}</td>
+        </tr>`;
+      }).join('');
+}
+
+function filter(q) {
+  q = q.toLowerCase();
+  render(all.filter(o =>
+    o.courseTitle.toLowerCase().includes(q) ||
+    o.courseNo.toLowerCase().includes(q) ||
+    o.instructorName.toLowerCase().includes(q)
+  ));
+}
+
+async function enroll(offeringId) {
+  const res = await API.post('../api/enrollments', { offeringId });
+  if (res.success) {
+    toast('Enrolled successfully! ✓');
+    all = await API.get('../api/courses/available/' + studentId);
+    render(all);
+  } else {
+    toast(res.error || 'Enrollment failed', 'error');
+  }
+}
+</script>
+</body>
+</html>
