@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Attendance — Faculty</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h2>🎓 UniERP</h2><span>Faculty Portal</span></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>My Classes</span></a>
+      <a class="nav-item" href="assignments.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Assignments</span></a>
+      <a class="nav-item active" href="attendance.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span>Attendance</span></a>
+      <a class="nav-item" href="materials.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span>Materials</span></a>
+      <a class="nav-item" href="announcements.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span>Announcements</span></a>
+      <a class="nav-item" href="grades.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Grades</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="nav-item" href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Logout</span></a>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <span class="topbar-title">Mark Attendance</span>
+      <div class="topbar-right"><div class="avatar" id="user-avatar">F</div></div>
+    </header>
+    <div class="content">
+
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <label style="font-weight:500;font-size:14px">Course:</label>
+          <select id="offering-select" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;outline:none;min-width:280px;flex:1">
+            <option value="">— Loading your courses... —</option>
+          </select>
+          <label style="font-weight:500;font-size:14px">Date:</label>
+          <input type="date" id="att-date"
+            style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;outline:none">
+          <button class="btn btn-primary" onclick="loadSheet()">Load Students</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap" id="action-btns" style="display:none">
+          <button class="btn btn-success btn-sm" onclick="markAll('present')">✅ All Present</button>
+          <button class="btn btn-danger btn-sm" onclick="markAll('absent')">❌ All Absent</button>
+          <button class="btn btn-primary" onclick="saveAll()" id="save-btn" style="display:none">💾 Save Attendance</button>
+        </div>
+      </div>
+
+      <div class="card" id="sheet-card" style="display:none">
+        <div class="card-header">
+          <span class="card-title" id="sheet-title">Attendance Sheet</span>
+          <span id="sheet-date" style="font-size:13px;color:#718096"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Enrollment No</th>
+                <th>Student Name</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="sheet-tbody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
+          <button class="btn btn-primary" onclick="saveAll()">💾 Save All Attendance</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+<script src="../js/app.js"></script>
+<script>
+let sheetData = [];
+let currentOfferingId = 0;
+
+async function init() {
+  initSidebar();
+
+  const inst = await API.get('../api/instructor/me');
+  if (inst && inst.fname) {
+    document.getElementById('user-avatar').textContent = inst.fname[0];
+  }
+
+  // Set today's date
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  document.getElementById('att-date').value = `${yyyy}-${mm}-${dd}`;
+
+  // Load offerings
+  const data = await API.get('../api/courses/offerings/instructor/0');
+  const offerings = Array.isArray(data) ? data : [];
+
+  const sel = document.getElementById('offering-select');
+  if (offerings.length === 0) {
+    sel.innerHTML = '<option value="">— No courses assigned to you yet —</option>';
+    toast('No course offerings found. Ask admin to assign courses to you.', 'error');
+    return;
+  }
+
+  sel.innerHTML = '<option value="">— Select a course —</option>' +
+    offerings.map(o =>
+      `<option value="${o.offeringId}">${o.courseNo} — ${o.courseTitle} (Sec ${o.sectionNo})</option>`
+    ).join('');
+}
+
+async function loadSheet() {
+  const offeringId = document.getElementById('offering-select').value;
+  const date = document.getElementById('att-date').value;
+
+  if (!offeringId) { toast('Please select a course', 'error'); return; }
+  if (!date)       { toast('Please select a date', 'error'); return; }
+
+  currentOfferingId = parseInt(offeringId);
+
+  const data = await API.get(`../api/attendance/sheet/${offeringId}/${date}`);
+  sheetData = Array.isArray(data) ? data : [];
+
+  const selText = document.getElementById('offering-select').options[document.getElementById('offering-select').selectedIndex].text;
+  document.getElementById('sheet-card').style.display = 'block';
+  document.getElementById('sheet-title').textContent = selText;
+  document.getElementById('sheet-date').textContent = 'Date: ' + date;
+
+  if (sheetData.length === 0) {
+    document.getElementById('sheet-tbody').innerHTML = tableEmpty(4, 'No students enrolled in this course yet. Enroll students first.');
+    return;
+  }
+
+  renderSheet();
+}
+
+function renderSheet() {
+  document.getElementById('sheet-tbody').innerHTML = sheetData.map((s, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${s.enrollmentNo}</td>
+      <td><strong>${s.studentName}</strong></td>
+      <td>
+        <div style="display:flex;gap:8px">
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border-radius:6px;border:1px solid var(--border);font-size:13px;${s.status==='present'?'background:#f0fff4;border-color:#38a169;':''}">
+            <input type="radio" name="att-${s.studentId}" value="present" ${s.status==='present'||s.status==='not_marked'?'checked':''} onchange="updateStatus(${s.studentId},'present')"> ✅ Present
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border-radius:6px;border:1px solid var(--border);font-size:13px;${s.status==='absent'?'background:#fff5f5;border-color:#e53e3e;':''}">
+            <input type="radio" name="att-${s.studentId}" value="absent" ${s.status==='absent'?'checked':''} onchange="updateStatus(${s.studentId},'absent')"> ❌ Absent
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border-radius:6px;border:1px solid var(--border);font-size:13px;${s.status==='late'?'background:#fffaf0;border-color:#d69e2e;':''}">
+            <input type="radio" name="att-${s.studentId}" value="late" ${s.status==='late'?'checked':''} onchange="updateStatus(${s.studentId},'late')"> ⏰ Late
+          </label>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function updateStatus(studentId, status) {
+  const student = sheetData.find(s => s.studentId === studentId);
+  if (student) student.status = status;
+}
+
+function markAll(status) {
+  sheetData.forEach(s => {
+    s.status = status;
+    const radio = document.querySelector(`input[name="att-${s.studentId}"][value="${status}"]`);
+    if (radio) radio.checked = true;
+  });
+}
+
+async function saveAll() {
+  if (sheetData.length === 0) { toast('No students to save', 'error'); return; }
+  const date = document.getElementById('att-date').value;
+  let saved = 0, failed = 0;
+
+  for (const s of sheetData) {
+    const status = document.querySelector(`input[name="att-${s.studentId}"]:checked`)?.value || 'present';
+    const res = await API.post('../api/attendance', {
+      offeringId: currentOfferingId,
+      studentId: s.studentId,
+      date,
+      status
+    });
+    if (res.success) saved++;
+    else failed++;
+  }
+
+  if (failed === 0) toast(`✅ Attendance saved for ${saved} students! Students can now see their attendance.`);
+  else toast(`Saved ${saved}, failed ${failed}`, failed > 0 ? 'error' : 'success');
+
+  // Reload to show saved state
+  loadSheet();
+}
+
+init();
+</script>
+</body>
+</html>
